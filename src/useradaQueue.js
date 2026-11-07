@@ -3,14 +3,20 @@ import { delay, findPidstavaNreg, buildFullTitle, formatRadaDate, formatRadaUrlP
 import { findBudstandartDoc } from './budstandart';
 import { cacheGet, cacheSet, WEEK, MONTH } from './cache';
 
-/**
- * Что делает:
- *  - основной документ и підстава грузятся из Ради, пауза 5–7 с соблюдается ТОЛЬКО между
- *    реальными запросами к Раде (кэшированные документы пропускаются без ожидания);
- *  - поиск в Будстандарті идёт в фоне, пока хук ждёт паузу Ради, поэтому почти ничего не стоит;
- *  - результаты кэшируются в localStorage;
- *  - обработку можно остановить.
- */
+// Перевірка: чи запущено проєкт локально, чи вже на GitHub Pages
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+// Функція для формування правильного URL (локально через проксі, на GitHub — через CORS-проксі)
+function getProxiedUrl(targetUrl) {
+  if (IS_DEV) {
+    if (targetUrl.includes('data.rada.gov.ua')) {
+      return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
+    }
+  }
+  // На GitHub Pages завертаємо запит у публічний CORS-проксі
+  return `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+}
+
 export function useRadaQueue(typDict) {
   const [docsData, setDocsData] = useState({});
   const [pidstavaData, setPidstavaData] = useState({});
@@ -49,7 +55,12 @@ export function useRadaQueue(typDict) {
       await throttle(signal);
       let res;
       try {
-        res = await fetch(`/rada-api/laws/card/${formatRadaUrlPart(nreg)}.json`, { signal });
+        // Формуємо повний URL і проганяємо через обгортку getProxiedUrl
+        const targetUrl = `https://data.rada.gov.ua/laws/card/${formatRadaUrlPart(nreg)}.json`;
+        res = await fetch(getProxiedUrl(targetUrl), { 
+          signal,
+          headers: { 'Accept': 'application/json' }
+        });
       } finally {
         lastRadaRef.current = Date.now();
       }
