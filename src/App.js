@@ -10,12 +10,15 @@ const PAGE_SIZE = 50;
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Допоміжна функція для шляхів словників (щоб на GitHub вони не ламалися)
+// Допоміжна функція для правильного завантаження словників
 function getDictUrl(path) {
-  if (isLocalhost) return path;
-  // Якщо на GitHub Pages, можна вказати шлях до ваших статичних файлів у репозиторії 
-  // або через репозиторій (наприклад, /rada-checker-json/rada-api/...)
-  return path;
+  const targetUrl = `https://data.rada.gov.ua${path}`;
+  if (isLocalhost) {
+    // Локально використовуємо проксі з setupProxy.js
+    return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
+  }
+  // На GitHub Pages використовуємо публічний CORS-проксі для словників
+  return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 }
 
 export default function App() {
@@ -39,8 +42,8 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      loadDictionary(getDictUrl('/rada-api/ogd/zak/laws/data/csv/typ.txt')),
-      loadDictionary(getDictUrl('/rada-api/ogd/zak/laws/data/csv/stan.txt')),
+      loadDictionary(getDictUrl('/ogd/zak/laws/data/csv/typ.txt')),
+      loadDictionary(getDictUrl('/ogd/zak/laws/data/csv/stan.txt')),
     ]).then(([types, stans]) => {
       if (cancelled) return;
       setTypDict(types);
@@ -93,7 +96,7 @@ export default function App() {
       <div style={styles.panel}>
         {/* Вибір файлу */}
         <div style={styles.section}>
-          <label style={styles.label}>1. Оберіть файл з реєстром (.txt, .tsv):</label>
+          <label style={styles.label}>Оберіть файл з реєстром (.txt, .tsv):</label>
           <div style={styles.fileUploadWrapper}>
             <input 
               type="file" 
