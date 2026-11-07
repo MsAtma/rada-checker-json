@@ -1,7 +1,6 @@
 {
   "name": "rada-checker-json",
   "version": "0.1.0",
-  "homepage": "https://msatma.github.io/rada-checker-json",
   "private": true,
   "dependencies": {
     "@testing-library/dom": "^10.4.2",
