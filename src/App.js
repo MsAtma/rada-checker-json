@@ -6,9 +6,25 @@ import { useRadaQueue } from './useradaQueue';
 
 const PAGE_SIZE = 50;
 
-// Перевірка: чи відкритий сайт локально, чи на GitHub Pages
+// Перевірка: чи відкритий сайт локально на комп'ютері, чи на сервері (Vercel)
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Функція формування URL для проксі (локально або через api/proxy на Vercel)
+function getProxiedUrl(targetUrl) {
+  if (isLocalhost) {
+    if (targetUrl.includes('data.rada.gov.ua')) {
+      return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
+    }
+    if (targetUrl.includes('online.budstandart.com')) {
+      return targetUrl.replace('https://online.budstandart.com', '/budstandart-api');
+    }
+  }
+
+  // На сервері Vercel передаємо через наш серверний api/proxy без подвійного кодування
+  const cleanUrl = decodeURI(targetUrl);
+  return `/api/proxy?url=${encodeURIComponent(cleanUrl)}`;
+}
 
 // Допоміжна функція для правильного завантаження словників
 function getDictUrl(path) {
@@ -33,7 +49,7 @@ export default function App() {
     isProcessing, progress, start, stop, reset
   } = useRadaQueue(typDict);
 
-  // Справочники (windows-1251) грузятся параллельно
+  // Словники (windows-1251) завантажуються паралельно
   useEffect(() => {
     let cancelled = false;
     Promise.all([
@@ -107,7 +123,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Фільтри та сортування в один ряд (адаптивно) */}
+        {/* Фільтри та сортування в один ряд */}
         <div style={styles.filtersContainer}>
           <div style={styles.filterGroup}>
             <label style={styles.label}>Від:</label>
@@ -141,7 +157,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Кнопка запуску */}
+        {/* Кнопки дій */}
         <div style={styles.actionsRow}>
           <button
             type="button"
