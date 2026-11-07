@@ -6,6 +6,18 @@ import { useRadaQueue } from './useradaQueue';
 
 const PAGE_SIZE = 50;
 
+// Перевірка: чи відкритий сайт локально, чи на GitHub Pages
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+// Допоміжна функція для шляхів словників (щоб на GitHub вони не ламалися)
+function getDictUrl(path) {
+  if (isLocalhost) return path;
+  // Якщо на GitHub Pages, можна вказати шлях до ваших статичних файлів у репозиторії 
+  // або через репозиторій (наприклад, /rada-checker-json/rada-api/...)
+  return path;
+}
+
 export default function App() {
   const [rawDocs, setRawDocs] = useState([]);
   const [fileName, setFileName] = useState('');
@@ -23,11 +35,12 @@ export default function App() {
     isProcessing, progress, start, stop, reset
   } = useRadaQueue(typDict);
 
+  // Справочники (windows-1251) грузятся параллельно
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      loadDictionary('/rada-api/ogd/zak/laws/data/csv/typ.txt'),
-      loadDictionary('/rada-api/ogd/zak/laws/data/csv/stan.txt'),
+      loadDictionary(getDictUrl('/rada-api/ogd/zak/laws/data/csv/typ.txt')),
+      loadDictionary(getDictUrl('/rada-api/ogd/zak/laws/data/csv/stan.txt')),
     ]).then(([types, stans]) => {
       if (cancelled) return;
       setTypDict(types);
