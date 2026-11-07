@@ -1,0 +1,10 @@
+{
+  "files": {
+    "main.js": "/rada-checker-json/static/js/main.ba8e17a7.js",
+    "index.html": "/rada-checker-json/index.html",
+    "main.ba8e17a7.js.map": "/rada-checker-json/static/js/main.ba8e17a7.js.map"
+  },
+  "entrypoints": [
+    "static/js/main.ba8e17a7.js"
+  ]
+}
