@@ -7,17 +7,21 @@ import { cacheGet, cacheSet, WEEK, MONTH } from './cache';
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// Функція для формування правильного URL (локально через проксі, на GitHub — через CORS-проксі)
 function getProxiedUrl(targetUrl) {
+  // 1. Если тестируете на компьютере:
   if (isLocalhost) {
     if (targetUrl.includes('data.rada.gov.ua')) {
       return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
     }
+    if (targetUrl.includes('online.budstandart.com')) {
+      return targetUrl.replace('https://online.budstandart.com', '/budstandart-api');
+    }
   }
-  // На GitHub Pages завертаємо запит у публічний CORS-проксі
-  return `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-}
 
+  // 2. В интернете на Vercel (вызываем наш собственный api/proxy):
+  const cleanUrl = decodeURI(targetUrl);
+  return `/api/proxy?url=${encodeURIComponent(cleanUrl)}`;
+}
 export function useRadaQueue(typDict) {
   const [docsData, setDocsData] = useState({});
   const [pidstavaData, setPidstavaData] = useState({});

@@ -13,12 +13,7 @@ const isLocalhost = typeof window !== 'undefined' &&
 // Допоміжна функція для правильного завантаження словників
 function getDictUrl(path) {
   const targetUrl = `https://data.rada.gov.ua${path}`;
-  if (isLocalhost) {
-    // Локально використовуємо проксі з setupProxy.js
-    return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
-  }
-  // На GitHub Pages використовуємо публічний CORS-проксі для словників
-  return `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+  return getProxiedUrl(targetUrl);
 }
 
 export default function App() {
