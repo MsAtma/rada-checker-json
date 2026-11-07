@@ -1,22 +1,35 @@
-// Справочники Рады (typ.txt, stan.txt) приходят в windows-1251: читаем байты и декодируем вручную.
-export const loadDictionary = async (url) => {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return {};
+// Встроенный справочник типов документов Рады
+export const DEFAULT_TYP_DICT = {
+  "1": "Закон",
+  "2": "Постанова",
+  "3": "Указ",
+  "4": "Розпорядження",
+  "5": "Наказ",
+  "6": "Рішення",
+  "7": "Декрет",
+  "8": "Кодекс",
+  "9": "Конституція",
+  "10": "Міжнародний документ",
+  "11": "Договір",
+  "12": "Угода",
+  "25": "Порядок",
+  "35": "Перелік",
+  "43": "Класифікатор",
+  "78": "Акт"
+};
 
-    const buffer = await res.arrayBuffer();
-    const text = new TextDecoder('windows-1251').decode(buffer);
+// Встроенный справочник статусов документов Рады
+export const DEFAULT_STAN_DICT = {
+  "0": "Не визначено",
+  "1": "Діючий",
+  "2": "Втратив чинність",
+  "3": "Не набрав чинності",
+  "4": "Зі змінами",
+  "5": "Чинний",
+  "6": "Скасовано"
+};
 
-    const map = {};
-    text.split(/\r?\n/).forEach((line) => {
-      const parts = line.split('\t');
-      if (parts.length >= 2) {
-        map[parts[0].trim()] = parts[1].trim();
-      }
-    });
-    return map;
-  } catch (e) {
-    console.error('Помилка завантаження словника:', url, e);
-    return {};
-  }
+// Загрузчик: возвращает встроенный словарь без сетевых запросов
+export const loadDictionary = async () => {
+  return DEFAULT_TYP_DICT;
 };

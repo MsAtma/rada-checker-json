@@ -50,17 +50,10 @@ export default function App() {
   } = useRadaQueue(typDict);
 
   // Словники (windows-1251) завантажуються паралельно
+// Словники завантажуються миттєво з локальної пам'яті без запитів до мережі
   useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      loadDictionary(getDictUrl('/ogd/zak/laws/data/csv/typ.txt')),
-      loadDictionary(getDictUrl('/ogd/zak/laws/data/csv/stan.txt')),
-    ]).then(([types, stans]) => {
-      if (cancelled) return;
-      setTypDict(types);
-      setStanDict(stans);
-    });
-    return () => { cancelled = true; };
+    setTypDict(DEFAULT_TYP_DICT);
+    setStanDict(DEFAULT_STAN_DICT);
   }, []);
 
   const handleFileUpload = async (e) => {

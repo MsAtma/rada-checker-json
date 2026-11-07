@@ -1,39 +1,28 @@
-// Отключаем строгую проверку сертификатов для украинских госсерверов
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 module.exports = async function handler(req, res) {
-  // Разрешаем CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({ error: 'Параметр url обов’язковий' });
-  }
+  if (!url) return res.status(400).json({ error: 'url required' });
 
   try {
     const targetUrl = encodeURI(decodeURI(url));
+    
+    // Запрашиваем через AllOrigins, чтобы обойти геоблокировку датацентров США со стороны Рады
+    const relayUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    const response = await fetch(relayUrl);
 
-    const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'OpenData',
-        'Accept': '*/*'
-      }
-    });
+    if (!response.ok) {
+      return res.status(response.status).json({ error: `Gateway error: ${response.status}` });
+    }
 
-    const textData = await response.text();
-    const contentType = response.headers.get('content-type') || 'text/plain; charset=utf-8';
-
-    res.setHeader('Content-Type', contentType);
-    return res.status(response.status).send(textData);
+    const data = await response.text();
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.status(200).send(data);
   } catch (err) {
-    console.error('Помилка проксі:', err);
     return res.status(500).json({ error: err.message });
   }
 };
