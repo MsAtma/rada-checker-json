@@ -3,12 +3,13 @@ import { delay, findPidstavaNreg, buildFullTitle, formatRadaDate, formatRadaUrlP
 import { findBudstandartDoc } from './budstandart';
 import { cacheGet, cacheSet, WEEK, MONTH } from './cache';
 
-// Перевірка: чи запущено проєкт локально, чи вже на GitHub Pages
-const IS_DEV = process.env.NODE_ENV === 'development';
+// ЗАЛІЗОБЕТОННА перевірка: чи відкритий сайт локально, чи на GitHub Pages
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 // Функція для формування правильного URL (локально через проксі, на GitHub — через CORS-проксі)
 function getProxiedUrl(targetUrl) {
-  if (IS_DEV) {
+  if (isLocalhost) {
     if (targetUrl.includes('data.rada.gov.ua')) {
       return targetUrl.replace('https://data.rada.gov.ua', '/rada-api');
     }
